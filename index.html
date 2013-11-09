@@ -1,0 +1,249 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Upworthy Headline Generator</title>
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Droid+Serif" />
+    <style>
+    body {
+        font-family: "Droid Serif", sans-serif;
+        background-color: hsl(37, 90%, 80%);
+        color: #444;
+    }
+    .tr {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 5px;
+        border-bottom-left-radius: 5px;
+        background-color: hsl(37, 70%, 70%);
+        font-size: 0.85em;
+    }
+    .tr > a {
+        display: inline-block;
+        padding: 0 1em;
+        vertical-align: middle;
+        color: #555;
+    }
+    .panel {
+        background-color: #FFF;
+        max-width: 600px;
+        margin: 10% auto 0;
+        padding: 3em;
+        border: 1px solid #AAA;
+        box-shadow: 0 25px 20px -20px hsla( 0, 0%, 0%, 0.3 );
+    }
+    h1 {
+        margin: 0;
+        font-family: "Droid Serif", Georgia, serif;
+    }
+    .actions {
+        display: block;
+        margin: 2em 0 0;
+        text-align: center;
+    }
+    .button {
+        padding: .5em 1em;
+        border-radius: 8px;
+        border: 1px solid #469DF5;
+        background: linear-gradient( to bottom, #79BBFF 5%, #4197EE 100% );
+        background-color: #79BBFF;
+        box-shadow: inset 0px 1px 0px 0px #CAE3FC;
+        color: #FFF;
+        font-family: Verdana, Arial, sans-serif;
+        font-size: 1.3em;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .button:focus { outline: #000 dotted 1px; }
+    .button:hover, .button:focus {
+        background: none;
+        background-color: #4197EE;
+        box-shadow: none;
+    }
+    .button:active {
+        -webkit-transform: translateY( 1px );
+        transform: translateY( 1px );
+    }
+    
+    .button.orange {
+        border-color: #EEB44F;
+        background: linear-gradient( to bottom, #FFC477 5%, #FB9E25 100% );
+        background-color: #FFC477;
+        box-shadow: inset 0px 1px 0px 0px #FCE2C1;
+    }
+    .button.orange:hover, .button.orange:focus {
+        background: none;
+        background-color: #FB9E25;
+        box-shadow: none;
+    }
+    </style>
+</head>
+<body>
+
+<div class=tr>
+    <a href="https://twitter.com/gregtyler" target="_blank">@gregtyler</a>
+    <iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fplay.gregtyler.co.uk%2Fupworthy%2F&amp;width=50&amp;layout=button_count&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=21&amp;appId=1435793093309249" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:120px; height:21px; vertical-align:middle;" allowTransparency="true"></iframe>
+</div>
+
+<div class=panel>
+    <h1 id=headline></h1>
+    <div class=actions>
+        <button id=button class="button orange">Generate another</button>
+        <label>
+            <input type=checkbox id=full />
+            Go <strong>full</strong> Upworthy
+        </label>
+    </div>
+    <div class=actions>
+        <a id=tweetbutton class=button href="https://twitter.com/share?url=http://play.gregtyler.co.uk/upworthy" target="_blank" style="font-size:.85em;">Tweet this</a>
+    </div>
+</div>
+
+<script type="text/javascript">
+"use strict";
+(function(){
+var $headline = document.getElementById('headline'),
+    $button = document.getElementById('button'),
+    $tweetbutton = document.getElementById('tweetbutton'),
+    $full = document.getElementById('full'),
+    totals = {};
+    
+// Generate a headline. This is where the magic happens.
+function genHeadline() {
+    var headline = '';
+    // Generate some actors
+    var actors = [ weightedRand( 'actors' ), weightedRand( 'actors' ) ],
+        rand = (Math.random() < 0.5)*1;
+    // Remove conflicts, and make sure the subject can be subjected
+    while( actors[0] === actors[1] || actors[rand].c === false )
+        actors[rand] = weightedRand( 'actors' );
+    
+    // Format the strings for each actor
+    actors[rand].out = (actors[rand].ps + ' ' + actors[rand].l).trim();
+    actors[1-rand].out = (actors[1-rand].po + ' ' + actors[1-rand].l).trim();
+    
+    // Put the headline together
+    headline = ucfirst( actors[0].out ) + ' said ' + actors[1].out + ' couldn\'t ' + weightedRand( 'action' ).l + '. ';
+    headline += ucfirst( weightedRand( 'interaction' ).l ) + ' to ' + weightedRand( 'result' ).l + '.';
+    
+    // Upworthify if necessary
+    if( $full.checked )
+        headline = upworthify( headline );
+    
+    $headline.innerHTML = headline;
+}
+
+// We're going *full* Upworthy, or undoing it
+function toggleUpworthify() {
+    var full = this.checked;
+    if( this.checked )
+        $headline.innerHTML = upworthify( $headline.innerHTML );
+    else
+        $headline.innerHTML = $headline.innerHTML.replace(/([^.]) ([a-z])/gi,function(a,b,c){ return b + ' ' + c.toLowerCase();});
+}
+
+// Make a string Worthy!
+function upworthify( str ) {
+    return str.replace(/ ([a-z])/gi,function(a,b){return ' ' + b.toUpperCase();});
+}
+
+function tweetit() {
+    // Get the text, cut if necesssary
+    var text = '"' + ( $headline.length >= 116 ? $headline.innerHTML.substr(0,112) + '...' : $headline.innerHTML ) + '"';
+    // Set the gen URL
+    var url = 'http://play.gregtyler.co.uk/upworthy/#t=' + encodeURIComponent( $headline.innerHTML );
+    // Set the HREF
+    this.href = 'https://twitter.com/share?text=' + encodeURIComponent( text ) + '&url=' + encodeURIComponent( url );
+}
+
+// Return the string with the first character uppercase'd
+function ucfirst( str ) {
+    return str[0].toUpperCase() + str.substr(1);
+}
+
+// Find a random element of the words[type] array, considering their weighting
+function weightedRand( type ) {
+    var i = 0, l = words[type].length, total = totals[type];
+    // Generate the total
+    if( typeof total === "undefined" ) {
+        total = 0;
+        for( ; i<l; i++ )
+            total += typeof words[type][i].w === 'undefined' ? 1 : words[type][i].w;
+        totals[type] = total;
+    }
+    // Get a random point
+    var f = ( Math.random() * total );
+    
+    for( var i=0; i<l; i++ ) {
+        var r = words[type][i];
+        f -= typeof r.w === 'undefined' ? 1 : r.w;
+        if( f > 0 ) continue;
+        return r;
+    }
+}
+
+var words = {
+    actors: [
+        {l:'Barack Obama',po:'',ps:'',c:false},
+        {l:'Miley Cyrus',po:'',ps:'',c:false},
+        {l:'Nathan Fillion',po:'',ps:'',c:false,w:0.4},
+        {l:'Doctor Who',po:'',ps:'',c:false},
+        {l:'society',po:'',ps:'',c:false},
+        {l:'we',po:'',ps:'',c:true},
+        {l:'man',po:'a',ps:'this',c:true},
+        {l:'woman',po:'a',ps:'this',c:true},
+        {l:'child',po:'a',ps:'this',c:true},
+        {l:'children',po:'some',ps:'these',c:true},
+        {l:'1900s steel conglomerate tycoon',po:'a',ps:'this',c:true,w:0.02},
+        {l:'the leader of the opposition',po:'',ps:'',c:true},
+    ],
+    action: [
+        {l:'ride the bus'},
+        {l:'understand equality'},
+        {l:'explain equality'},
+        {l:'star in The Hobbit'},
+        {l:'be taught'},
+        {l:'watch this video'},
+        {l:'weep openly'},
+        {l:'twerk'},
+        {l:'make money on the stock market'},
+        {l:'win a game of tennis'},
+        {l:'talk to them about equality'},
+    ],
+    interaction: [
+        {l:'watch the video',w:20},
+        {l:'read the article',w:5},
+        {l:'divine the tea leaves'},
+        {l:'read the slidedeck'},
+    ],
+    result: [
+        {l:'see the amazing result',w:3},
+        {l:'start the waterworks'},
+        {l:'learn something new'},
+        {l:'see how they were wrong'},
+        {l:'see how twenty people made a real difference'},
+        {l:'see what happened next',w:2},
+        {l:'have your mind blown',w:2},
+        {l:'have your beliefs challenged'},
+        {l:'help them'},
+        {l:'change your mind'},
+    ],
+};
+
+// Everything's loaded; let's go!
+$button.onclick = genHeadline;
+$full.onclick = toggleUpworthify;
+$tweetbutton.onclick = tweetit;
+if( window.location.hash.substr(0,3) === '#t=' )
+    $headline.innerHTML = decodeURIComponent( window.location.hash.substr(3) );
+else
+    genHeadline();
+
+})();
+</script>
+</body>
+</html>
