@@ -80,8 +80,8 @@
         box-shadow: none;
     }
     .button:active {
-        -webkit-transform: translateY( 1px );
-        transform: translateY( 1px );
+        -webkit-transform: scale( 1.05 );
+        transform: scale( 1.05 );
     }
     
     .button.orange {
@@ -96,6 +96,14 @@
         box-shadow: none;
     }
     </style>
+    <meta property="fb:app_id" content="1435793093309249" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Upworthy Headline Generator" />
+    <meta property="og:description" content='I get links from Upworthy shared on my Facebook timeline all the time and thought we could just cut out the whole "making content" process with an automatic headline generator.' />
+    <meta property="og:image" content="http://play.gregtyler.co.uk/upworthy/image.png" />
+    <meta property="og:url" content="http://play.gregtyler.co.uk/upworthy/"/>
+    <meta property="og:site_name" content="Greg Tyler"/>
+
 </head>
 <body>
 
@@ -105,6 +113,7 @@
 
 <div class=tr>
     <a href="https://twitter.com/gregtyler" target="_blank">@gregtyler</a>
+    <a href="http://gregtyler.co.uk/2013/11/upworthy-headline-generator/" target="_blank">Blog post</a>
     <iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fplay.gregtyler.co.uk%2Fupworthy%2F&amp;width=50&amp;layout=button_count&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=21&amp;appId=1435793093309249" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:120px; height:21px; vertical-align:middle;" allowTransparency="true"></iframe>
 </div>
 
@@ -122,6 +131,14 @@
     </div>
 </div>
 
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-34023507-2', 'gregtyler.co.uk');
+ga('send', 'pageview');
+</script>
 <script type="text/javascript">
 "use strict";
 (function(){
@@ -153,6 +170,9 @@ function genHeadline() {
     if( $full.checked )
         headline = upworthify( headline );
     
+    // Tell Google what you're up to!
+    ga('send', 'event', 'button', 'click', 'Generate Headline');
+    
     // Undo any hash strings
     if( window.location.hash ) window.location.hash = '';
     
@@ -162,6 +182,7 @@ function genHeadline() {
 // We're going *full* Upworthy, or undoing it
 function toggleUpworthify() {
     var full = this.checked;
+    if( full ) ga('send', 'event', 'button', 'click', 'Upworthify');
     if( this.checked )
         $headline.innerHTML = upworthify( $headline.innerHTML );
     else
@@ -175,10 +196,13 @@ function upworthify( str ) {
 
 function tweetit() {
     // Get the text, cut if necesssary
-    console.log( $headline.innerHTML.length );
     var text = '"' + ( $headline.innerHTML.length >= 116 ? $headline.innerHTML.substr(0,112) + '...' : $headline.innerHTML ) + '"';
+    
     // Set the gen URL
     var url = 'http://play.gregtyler.co.uk/upworthy/#t=' + encodeURIComponent( $headline.innerHTML.substr(0,$headline.innerHTML.length-1) ) + '%2E';
+    
+    // Tell Google all about it
+    ga('send', 'event', 'button', 'click', 'Tweet it');
     
     // Set the HREF
     this.href = 'https://twitter.com/share?text=' + encodeURIComponent( text ) + '&url=' + encodeURIComponent( url );
@@ -216,27 +240,37 @@ var words = {
         {l:'Miley Cyrus',po:'',ps:'',c:false},
         {l:'Nathan Fillion',po:'',ps:'',c:false,w:0.4},
         {l:'Doctor Who',po:'',ps:'',c:false},
+        {l:'Kel from Kenan & Kel',po:'',ps:'',c:false},
         {l:'society',po:'',ps:'',c:false},
         {l:'we',po:'',ps:'',c:true},
         {l:'man',po:'a',ps:'this',c:true},
         {l:'woman',po:'a',ps:'this',c:true},
         {l:'child',po:'a',ps:'this',c:true},
         {l:'children',po:'some',ps:'these',c:true},
+        {l:'grandma',po:'a',ps:'this',c:true},
         {l:'1900s steel conglomerate tycoon',po:'a',ps:'this',c:true,w:0.02},
-        {l:'the leader of the opposition',po:'',ps:'',c:true},
+        {l:'leader of the opposition',po:'the',ps:'',c:false,w:0.6},
     ],
     action: [
         {l:'ride the bus'},
         {l:'understand equality'},
         {l:'explain equality'},
         {l:'star in The Hobbit'},
-        {l:'be taught'},
+        {l:'be taught mathematics'},
         {l:'watch this video'},
         {l:'weep openly'},
         {l:'twerk'},
         {l:'make money on the stock market'},
         {l:'win a game of tennis'},
         {l:'talk to them about equality'},
+        {l:'reinvent the wheel'},
+        {l:'get a room full of cardiologists to sing'},
+        {l:'teach preschoolers about religion'},
+        {l:'find Carmen Sandiego'},
+        {l:'live longer than a week'},
+        {l:'overthrow a foreign regime'},
+        {l:'catch their neighbour\'s cat'},
+        {l:'travel to Burundi'},
     ],
     interaction: [
         {l:'watch the video',w:20},
@@ -255,6 +289,7 @@ var words = {
         {l:'have your beliefs challenged'},
         {l:'help them'},
         {l:'change your mind'},
+        {l:'what made a room full of people to applaud wildly'},
     ],
 };
 
@@ -262,11 +297,12 @@ var words = {
 $button.onclick = genHeadline;
 $full.onclick = toggleUpworthify;
 $tweetbutton.onclick = tweetit;
+
+// Either load the sent text, or make a new one!
 if( window.location.hash.substr(0,3) === '#t=' )
     $headline.innerHTML = decodeURIComponent( window.location.hash.substr(3) );
 else
     genHeadline();
-
 })();
 </script>
 </body>
